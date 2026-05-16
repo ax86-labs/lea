@@ -9,6 +9,10 @@ require (
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/metoro-io/mcp-golang v0.16.1
 	github.com/spf13/cobra v1.10.2
+	github.com/tree-sitter/go-tree-sitter v0.24.0
+	github.com/tree-sitter/tree-sitter-python v0.21.1-0.20240818005537-55a9b8a4fbfb
+	github.com/tree-sitter/tree-sitter-rust v0.21.3-0.20240818005432-2b43eafe6447
+	github.com/tree-sitter/tree-sitter-typescript v0.23.2
 	modernc.org/sqlite v1.50.1
 )
 
@@ -33,6 +37,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
+	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
@@ -43,6 +48,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect

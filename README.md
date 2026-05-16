@@ -4,7 +4,7 @@
 
 `ctxd` is a terminal-first structural memory system designed to help AI models and developers navigate and understand large codebases with minimal context and maximum precision.
 
-Unlike traditional RAG systems that treat code as flat text, `ctxd` models repositories as living structural graphs, preserving the deterministic relationships that define software systems.
+Unlike traditional RAG systems that treat code as flat text, `ctxd` models repositories as living structural graphs, preserving the deterministic relationships (calls, dependencies, implementations) that define software systems.
 
 ---
 
@@ -20,11 +20,13 @@ Modern AI coding systems suffer from context window limitations, token inflation
 
 ##  Key Features
 
-- **AST-Powered Indexing**: Compiler-grade parsing using `go/ast` (and soon Tree-sitter).
+- **Multi-Language AST Indexing**: Built-in support for **Go** (native `go/ast`) and **Python**, **TypeScript**, and **Rust** via Tree-sitter.
 - **Structural Graph Engine**: Models your codebase as a graph of functions, structs, interfaces, and their relationships (`CALLS`, `IMPLEMENTS`, `USES`).
 - **AI Context Compiler**: Generates high-signal, markdown-optimized context for LLMs (Claude, GPT, Gemini).
-- **Local-First & Fast**: Powered by an embedded SQLite database. Works offline and over SSH.
-- **Deterministic Traceability**: Map execution paths and impact zones with precision.
+- **Model Context Protocol (MCP)**: Expose your codebase structure directly to AI agents via a standardized protocol.
+- **Interactive TUI**: A rich, terminal-based explorer for fuzzy symbol navigation and dependency browsing.
+- **Incremental & Reactive**: Real-time graph updates using `fsnotify` without re-indexing the entire repository.
+- **Local-First**: Powered by an embedded SQLite database. Works offline and over SSH.
 
 ---
 
@@ -47,15 +49,15 @@ mv ctxd /usr/local/bin/
 ##  Usage
 
 ### 1. Index your project
-Initialize the structural graph for the current directory.
+Initialize the structural graph for your repository.
 ```bash
 ctxd index .
 ```
 
-### 2. Explore Relationships
-Find symbols directly related to a specific component.
+### 2. Interactive Exploration
+Launch the TUI to browse symbols and relationships.
 ```bash
-ctxd neighbors "type:internal/storage/sqlite:Store"
+ctxd tui
 ```
 
 ### 3. Trace Execution
@@ -64,27 +66,28 @@ Follow the call graph starting from a specific function.
 ctxd trace "func:internal/cli/commands:Execute"
 ```
 
-### 4. Impact Analysis
-Identify what depends on a specific package or symbol.
-```bash
-ctxd impact "pkg:internal/storage/sqlite"
-```
-
-### 5. AI Context Generation
-Generate a high-signal markdown summary for an LLM prompt.
+### 4. AI Context Generation
+Generate high-signal markdown for your LLM prompts.
 ```bash
 ctxd context "type:internal/storage/sqlite:Store"
+```
+
+### 5. MCP Server
+Connect your favorite AI agent directly to `ctxd`.
+```bash
+ctxd mcp
 ```
 
 ---
 
 ##  Architecture
 
-`ctxd` is built with a modular architecture:
-- **Parser Engine**: Extracts symbols and relationships using native language tools.
-- **Storage Layer**: SQLite-backed graph storage with recursive query support.
-- **Context Compiler**: The bridge between the structural graph and AI prompts.
-- **CLI/TUI**: Terminal-native interfaces for developers.
+`ctxd` is built with a modular, performance-oriented architecture:
+- **Parser Layer**: Pluggable parsers using native ASTs and Tree-sitter.
+- **Structural Graph Engine**: High-performance relationship modeling.
+- **Storage Layer**: SQLite-backed graph storage with recursive CTE support.
+- **Retrieval Engine**: Advanced queries for neighbors, impact analysis, and call tracing.
+- **Integration Layer**: MCP and TUI for human/AI interaction.
 
 ---
 
@@ -95,11 +98,12 @@ ctxd context "type:internal/storage/sqlite:Store"
 - [x] **Phase 1.5: Incremental Updates**: File watching (`fsnotify`) and partial re-indexing.
 - [x] **Phase 3: MCP Integration**: Expose `ctxd` as a Model Context Protocol server.
 - [x] **Phase 4: Interactive TUI**: Fuzzy navigation and visual dependency trees.
-- [ ] **Phase 5: Multi-Language**: Tree-sitter integration for Rust, TypeScript, and Python.
+- [x] **Phase 5: Multi-Language Support**: Tree-sitter integration for Python, TypeScript, and Rust.
+- [ ] **Phase 6: Advanced Retrieval**: Control flow analysis and architecture violation detection.
 
 ---
 
-##  License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
