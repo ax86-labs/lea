@@ -117,6 +117,32 @@ func (s *Store) GetNode(ctx context.Context, id string) (*graph.Node, error) {
 	return &node, nil
 }
 
+func (s *Store) ListNodes(ctx context.Context) ([]*graph.Node, error) {
+	query := `SELECT id, type, name, file, line, metadata FROM nodes`
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var nodes []*graph.Node
+	for rows.Next() {
+		var node graph.Node
+		var metadataStr string
+		var nodeType string
+		err := rows.Scan(&node.ID, &nodeType, &node.Name, &node.File, &node.Line, &metadataStr)
+		if err != nil {
+			return nil, err
+		}
+		node.Type = graph.NodeType(nodeType)
+		if metadataStr != "" {
+			json.Unmarshal([]byte(metadataStr), &node.Metadata)
+		}
+		nodes = append(nodes, &node)
+	}
+	return nodes, nil
+}
+
 func (s *Store) GetNeighbors(ctx context.Context, id string) ([]*graph.Node, []*graph.Edge, error) {
 	// Outbound edges and their target nodes
 	query := `
