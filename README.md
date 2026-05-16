@@ -93,7 +93,7 @@ ctxd context "type:internal/storage/sqlite:Store"
 - [x] **Phase 1: MVP**: Go parser, SQLite storage, basic graph queries.
 - [x] **Phase 2: AI Context Layer**: High-signal markdown generation.
 - [x] **Phase 1.5: Incremental Updates**: File watching (`fsnotify`) and partial re-indexing.
-- [ ] **Phase 3: MCP Integration**: Expose `ctxd` as a Model Context Protocol server.
+- [x] **Phase 3: MCP Integration**: Expose `ctxd` as a Model Context Protocol server.
 - [ ] **Phase 4: Interactive TUI**: Fuzzy navigation and visual dependency trees.
 - [ ] **Phase 5: Multi-Language**: Tree-sitter integration for Rust, TypeScript, and Python.
 

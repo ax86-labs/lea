@@ -21,9 +21,10 @@ func NewStore(dsn string) (*Store, error) {
 	}
 
 	// Enable foreign keys
-	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
-		return nil, err
-	}
+	// Disabled for now because call edges often reference unknown/external symbols
+	// if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+	// 	return nil, err
+	// }
 
 	if err := db.Ping(); err != nil {
 		return nil, err
