@@ -1,0 +1,26 @@
+# Example architecture constraints for ctxd
+layers:
+  - name: http
+    patterns:
+      - cmd/**
+      - internal/http/**
+    allow:
+      - service
+
+  - name: service
+    patterns:
+      - internal/service/**
+    allow:
+      - repository
+      - service
+
+  - name: repository
+    patterns:
+      - internal/repository/**
+    allow:
+      - repository
+
+settings:
+  allow_self: true
+  allow_unknown: true
+  default_allow_all: false

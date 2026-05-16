@@ -16,5 +16,6 @@ type Edge struct {
 	FromID   string                 `json:"from_id"`
 	ToID     string                 `json:"to_id"`
 	Type     EdgeType               `json:"type"`
+	Sequence int                    `json:"sequence"`
 	Metadata map[string]interface{} `json:"metadata"`
 }

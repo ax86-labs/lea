@@ -1,8 +1,10 @@
 package golang
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
+	"go/format"
 	"go/parser"
 	"go/token"
 	"path/filepath"
@@ -177,6 +179,176 @@ func (p *Parser) ExtractCalls(path string) ([]*graph.Edge, error) {
 	})
 
 	return edges, nil
+}
+
+func (p *Parser) ExtractControlFlow(path string) ([]*graph.Edge, error) {
+	f, err := parser.ParseFile(p.fset, path, nil, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	var edges []*graph.Edge
+	pkgPath := filepath.Dir(path)
+
+	for _, decl := range f.Decls {
+		fn, ok := decl.(*ast.FuncDecl)
+		if !ok || fn.Body == nil {
+			continue
+		}
+
+		currentFunc := ""
+		if fn.Recv != nil {
+			recvType := p.getReceiverType(fn.Recv)
+			currentFunc = fmt.Sprintf("method:%s:%s.%s", pkgPath, recvType, fn.Name.Name)
+		} else {
+			currentFunc = fmt.Sprintf("func:%s:%s", pkgPath, fn.Name.Name)
+		}
+
+		order := 0
+		p.walkStmtList(fn.Body.List, pkgPath, currentFunc, &order, nil, &edges)
+	}
+
+	return edges, nil
+}
+
+type flowContext struct {
+	kind      string
+	condition string
+}
+
+func (p *Parser) walkStmtList(stmts []ast.Stmt, pkgPath, currentFunc string, order *int, ctxStack []flowContext, edges *[]*graph.Edge) {
+	for _, stmt := range stmts {
+		p.walkStmt(stmt, pkgPath, currentFunc, order, ctxStack, edges)
+	}
+}
+
+func (p *Parser) walkStmt(stmt ast.Stmt, pkgPath, currentFunc string, order *int, ctxStack []flowContext, edges *[]*graph.Edge) {
+	switch s := stmt.(type) {
+	case *ast.BlockStmt:
+		p.walkStmtList(s.List, pkgPath, currentFunc, order, ctxStack, edges)
+	case *ast.IfStmt:
+		ctx := append(ctxStack, flowContext{kind: "if", condition: p.exprString(s.Cond)})
+		p.collectCallsFromNode(s.Init, pkgPath, currentFunc, order, ctx, edges)
+		p.collectCallsFromNode(s.Cond, pkgPath, currentFunc, order, ctx, edges)
+		p.walkStmtList(s.Body.List, pkgPath, currentFunc, order, ctx, edges)
+		if s.Else != nil {
+			p.walkStmt(s.Else, pkgPath, currentFunc, order, ctx, edges)
+		}
+	case *ast.ForStmt:
+		ctx := append(ctxStack, flowContext{kind: "for", condition: p.exprString(s.Cond)})
+		p.collectCallsFromNode(s.Init, pkgPath, currentFunc, order, ctx, edges)
+		p.collectCallsFromNode(s.Cond, pkgPath, currentFunc, order, ctx, edges)
+		p.collectCallsFromNode(s.Post, pkgPath, currentFunc, order, ctx, edges)
+		p.walkStmtList(s.Body.List, pkgPath, currentFunc, order, ctx, edges)
+	case *ast.RangeStmt:
+		ctx := append(ctxStack, flowContext{kind: "range", condition: p.exprString(s.X)})
+		p.collectCallsFromNode(s.X, pkgPath, currentFunc, order, ctx, edges)
+		p.walkStmtList(s.Body.List, pkgPath, currentFunc, order, ctx, edges)
+	case *ast.SwitchStmt:
+		ctx := append(ctxStack, flowContext{kind: "switch", condition: p.exprString(s.Tag)})
+		p.collectCallsFromNode(s.Init, pkgPath, currentFunc, order, ctx, edges)
+		p.collectCallsFromNode(s.Tag, pkgPath, currentFunc, order, ctx, edges)
+		for _, stmt := range s.Body.List {
+			clause, ok := stmt.(*ast.CaseClause)
+			if !ok {
+				continue
+			}
+			p.walkStmtList(clause.Body, pkgPath, currentFunc, order, ctx, edges)
+		}
+	case *ast.TypeSwitchStmt:
+		ctx := append(ctxStack, flowContext{kind: "type-switch"})
+		p.collectCallsFromNode(s.Init, pkgPath, currentFunc, order, ctx, edges)
+		p.collectCallsFromNode(s.Assign, pkgPath, currentFunc, order, ctx, edges)
+		for _, stmt := range s.Body.List {
+			clause, ok := stmt.(*ast.CaseClause)
+			if !ok {
+				continue
+			}
+			p.walkStmtList(clause.Body, pkgPath, currentFunc, order, ctx, edges)
+		}
+	case *ast.SelectStmt:
+		ctx := append(ctxStack, flowContext{kind: "select"})
+		for _, stmt := range s.Body.List {
+			clause, ok := stmt.(*ast.CommClause)
+			if !ok {
+				continue
+			}
+			p.walkStmtList(clause.Body, pkgPath, currentFunc, order, ctx, edges)
+		}
+	case *ast.DeferStmt:
+		ctx := append(ctxStack, flowContext{kind: "defer"})
+		p.collectCallsFromNode(s.Call, pkgPath, currentFunc, order, ctx, edges)
+	case *ast.GoStmt:
+		ctx := append(ctxStack, flowContext{kind: "go"})
+		p.collectCallsFromNode(s.Call, pkgPath, currentFunc, order, ctx, edges)
+	default:
+		p.collectCallsFromNode(stmt, pkgPath, currentFunc, order, ctxStack, edges)
+	}
+}
+
+func (p *Parser) collectCallsFromNode(node ast.Node, pkgPath, currentFunc string, order *int, ctxStack []flowContext, edges *[]*graph.Edge) {
+	if node == nil || currentFunc == "" {
+		return
+	}
+	ast.Inspect(node, func(n ast.Node) bool {
+		callExpr, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		callTarget := p.getCallTarget(callExpr)
+		if callTarget == "" {
+			return true
+		}
+
+		targetID := ""
+		if strings.Contains(callTarget, ".") {
+			targetID = fmt.Sprintf("unknown:%s", callTarget)
+		} else {
+			targetID = fmt.Sprintf("func:%s:%s", pkgPath, callTarget)
+		}
+
+		*order = *order + 1
+		sequence := *order
+		metadata := map[string]interface{}{
+			"order":   sequence,
+			"context": p.contextString(ctxStack),
+		}
+
+		*edges = append(*edges, &graph.Edge{
+			FromID:   currentFunc,
+			ToID:     targetID,
+			Type:     graph.EdgeFlowsThrough,
+			Sequence: sequence,
+			Metadata: metadata,
+		})
+		return true
+	})
+}
+
+func (p *Parser) contextString(ctxStack []flowContext) string {
+	if len(ctxStack) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(ctxStack))
+	for _, ctx := range ctxStack {
+		if ctx.condition != "" {
+			parts = append(parts, fmt.Sprintf("%s(%s)", ctx.kind, ctx.condition))
+		} else {
+			parts = append(parts, ctx.kind)
+		}
+	}
+	return strings.Join(parts, " > ")
+}
+
+func (p *Parser) exprString(expr ast.Expr) string {
+	if expr == nil {
+		return ""
+	}
+	var buf bytes.Buffer
+	if err := format.Node(&buf, p.fset, expr); err != nil {
+		return ""
+	}
+	return buf.String()
 }
 
 func (p *Parser) getCallTarget(ce *ast.CallExpr) string {

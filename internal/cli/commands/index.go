@@ -66,7 +66,9 @@ var indexCmd = &cobra.Command{
 			if ext == ".go" {
 				nodes, edges, _ = goParser.ParseFile(filePath)
 				callEdges, _ := goParser.ExtractCalls(filePath)
+				flowEdges, _ := goParser.ExtractControlFlow(filePath)
 				edges = append(edges, callEdges...)
+				edges = append(edges, flowEdges...)
 			} else if ext == ".py" || ext == ".rs" || ext == ".ts" {
 				nodes, edges, _ = tsParser.ParseFile(ctx, filePath)
 			} else {

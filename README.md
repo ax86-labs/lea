@@ -25,6 +25,7 @@ Modern AI coding systems suffer from context window limitations, token inflation
 - **AI Context Compiler**: Generates high-signal, markdown-optimized context for LLMs (Claude, GPT, Gemini).
 - **Model Context Protocol (MCP)**: Expose your codebase structure directly to AI agents via a standardized protocol.
 - **Interactive TUI**: A rich, terminal-based explorer for fuzzy symbol navigation and dependency browsing.
+- **Control Flow & Architecture Violations**: Ordered execution paths and boundary checks against architecture constraints.
 - **Incremental & Reactive**: Real-time graph updates using `fsnotify` without re-indexing the entire repository.
 - **Local-First**: Powered by an embedded SQLite database. Works offline and over SSH.
 
@@ -66,13 +67,25 @@ Follow the call graph starting from a specific function.
 ctxd trace "func:internal/cli/commands:Execute"
 ```
 
-### 4. AI Context Generation
+### 4. Control Flow Ordering
+Inspect the ordered call flow within a symbol.
+```bash
+ctxd flow "func:internal/cli/commands:Execute"
+```
+
+### 5. Architecture Violations
+Detect boundary violations using an architecture config.
+```bash
+ctxd violations --config .ctxd/architecture.yaml
+```
+
+### 6. AI Context Generation
 Generate high-signal markdown for your LLM prompts.
 ```bash
 ctxd context "type:internal/storage/sqlite:Store"
 ```
 
-### 5. MCP Server
+### 7. MCP Server
 Connect your favorite AI agent directly to `ctxd`.
 ```bash
 ctxd mcp
@@ -99,7 +112,7 @@ ctxd mcp
 - [x] **Phase 3: MCP Integration**: Expose `ctxd` as a Model Context Protocol server.
 - [x] **Phase 4: Interactive TUI**: Fuzzy navigation and visual dependency trees.
 - [x] **Phase 5: Multi-Language Support**: Tree-sitter integration for Python, TypeScript, and Rust.
-- [ ] **Phase 6: Advanced Retrieval**: Control flow analysis and architecture violation detection.
+- [x] **Phase 6: Advanced Retrieval**: Control flow analysis and architecture violation detection.
 
 ---
 
