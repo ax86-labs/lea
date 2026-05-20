@@ -1,15 +1,12 @@
 module github.com/andev0x/ctxd
 
-go 1.24
-
-toolchain go1.24.0
+go 1.25.0
 
 require (
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/mattn/go-isatty v0.0.20
 	github.com/metoro-io/mcp-golang v0.16.1
 	github.com/spf13/cobra v1.10.2
 	github.com/tree-sitter/go-tree-sitter v0.24.0
@@ -39,6 +36,7 @@ require (
 	github.com/invopop/jsonschema v0.12.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect

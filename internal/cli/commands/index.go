@@ -67,15 +67,15 @@ var indexCmd = &cobra.Command{
 			switch ext {
 			case ".go":
 				var parseErr error
-				nodes, edges, parseErr = goParser.ParseFile(filePath)
+				nodes, edges, parseErr = goParser.ParseFile(ctx, filePath)
 				if parseErr != nil {
 					return fmt.Errorf("parse %s: %w", filePath, parseErr)
 				}
-				callEdges, callErr := goParser.ExtractCalls(filePath)
+				callEdges, callErr := goParser.ExtractCalls(ctx, filePath)
 				if callErr != nil {
 					return fmt.Errorf("extract calls %s: %w", filePath, callErr)
 				}
-				flowEdges, flowErr := goParser.ExtractControlFlow(filePath)
+				flowEdges, flowErr := goParser.ExtractControlFlow(ctx, filePath)
 				if flowErr != nil {
 					return fmt.Errorf("extract flow %s: %w", filePath, flowErr)
 				}

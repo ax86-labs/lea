@@ -2,6 +2,7 @@ package golang
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"go/ast"
 	"go/format"
@@ -23,7 +24,7 @@ func NewParser() *Parser {
 	}
 }
 
-func (p *Parser) ParseFile(path string) ([]*graph.Node, []*graph.Edge, error) {
+func (p *Parser) ParseFile(ctx context.Context, path string) ([]*graph.Node, []*graph.Edge, error) {
 	f, err := parser.ParseFile(p.fset, path, nil, parser.ParseComments)
 	if err != nil {
 		return nil, nil, err
@@ -131,7 +132,7 @@ func (p *Parser) getReceiverType(recv *ast.FieldList) string {
 	return ""
 }
 
-func (p *Parser) ExtractCalls(path string) ([]*graph.Edge, error) {
+func (p *Parser) ExtractCalls(ctx context.Context, path string) ([]*graph.Edge, error) {
 	f, err := parser.ParseFile(p.fset, path, nil, 0)
 	if err != nil {
 		return nil, err
@@ -181,7 +182,7 @@ func (p *Parser) ExtractCalls(path string) ([]*graph.Edge, error) {
 	return edges, nil
 }
 
-func (p *Parser) ExtractControlFlow(path string) ([]*graph.Edge, error) {
+func (p *Parser) ExtractControlFlow(ctx context.Context, path string) ([]*graph.Edge, error) {
 	f, err := parser.ParseFile(p.fset, path, nil, 0)
 	if err != nil {
 		return nil, err

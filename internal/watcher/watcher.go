@@ -9,19 +9,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/andev0x/ctxd/internal/parser/contracts"
 	"github.com/andev0x/ctxd/internal/parser/golang"
-	"github.com/andev0x/ctxd/internal/storage/contracts"
+	storage "github.com/andev0x/ctxd/internal/storage/contracts"
 	"github.com/andev0x/ctxd/internal/workspace/ignore"
 	"github.com/fsnotify/fsnotify"
 )
 
 type Watcher struct {
-	store  contracts.Store
-	parser *golang.Parser
+	store  storage.Store
+	parser contracts.Parser
 	root   string
 }
 
-func NewWatcher(store contracts.Store, root string) *Watcher {
+func NewWatcher(store storage.Store, root string) *Watcher {
 	return &Watcher{
 		store:  store,
 		parser: golang.NewParser(),
@@ -102,19 +103,19 @@ func (w *Watcher) handleUpdate(ctx context.Context, path string) {
 		return
 	}
 
-	nodes, edges, err := w.parser.ParseFile(path)
+	nodes, edges, err := w.parser.ParseFile(ctx, path)
 	if err != nil {
 		log.Printf("Error parsing %s: %v", path, err)
 		return
 	}
 
-	callEdges, callErr := w.parser.ExtractCalls(path)
+	callEdges, callErr := w.parser.ExtractCalls(ctx, path)
 	if callErr != nil {
 		log.Printf("Error extracting calls for %s: %v", path, callErr)
 		return
 	}
 
-	flowEdges, flowErr := w.parser.ExtractControlFlow(path)
+	flowEdges, flowErr := w.parser.ExtractControlFlow(ctx, path)
 	if flowErr != nil {
 		log.Printf("Error extracting flow for %s: %v", path, flowErr)
 		return
