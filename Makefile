@@ -1,8 +1,8 @@
 # Project variables
-BINARY_NAME=ctxd
+BINARY_NAME=lea
 VERSION=0.1.0
 BUILD_DIR=bin
-MAIN_PATH=./cmd/ctxd/main.go
+MAIN_PATH=./cmd/lea/main.go
 
 # Go parameters
 GOCMD=go
@@ -31,7 +31,7 @@ clean: ## Remove build artifacts and local graph data
 	@echo "Cleaning..."
 	$(GOCLEAN)
 	rm -rf $(BUILD_DIR)
-	rm -rf .ctxd/
+	rm -rf .lea/
 
 test: ## Run tests
 	@echo "Running tests..."
