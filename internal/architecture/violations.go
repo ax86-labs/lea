@@ -3,8 +3,8 @@ package architecture
 import (
 	"context"
 
-	graph "github.com/ax86-labs/lea/internal/graph/contracts"
-	"github.com/ax86-labs/lea/internal/storage/contracts"
+	graph "github.com/PizenLabs/lea/internal/graph/contracts"
+	"github.com/PizenLabs/lea/internal/storage/contracts"
 )
 
 type Violation struct {

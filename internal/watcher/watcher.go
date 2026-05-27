@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ax86-labs/lea/internal/parser/contracts"
-	"github.com/ax86-labs/lea/internal/parser/golang"
-	storage "github.com/ax86-labs/lea/internal/storage/contracts"
-	"github.com/ax86-labs/lea/internal/workspace/ignore"
+	"github.com/PizenLabs/lea/internal/parser/contracts"
+	"github.com/PizenLabs/lea/internal/parser/golang"
+	storage "github.com/PizenLabs/lea/internal/storage/contracts"
+	"github.com/PizenLabs/lea/internal/workspace/ignore"
 	"github.com/fsnotify/fsnotify"
 )
 

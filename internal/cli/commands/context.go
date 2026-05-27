@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	aictx "github.com/ax86-labs/lea/internal/ai/context"
-	"github.com/ax86-labs/lea/internal/storage/sqlite"
+	aictx "github.com/PizenLabs/lea/internal/ai/context"
+	"github.com/PizenLabs/lea/internal/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 

@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"sort"
 
-	aictx "github.com/ax86-labs/lea/internal/ai/context"
-	"github.com/ax86-labs/lea/internal/architecture"
-	graph "github.com/ax86-labs/lea/internal/graph/contracts"
-	"github.com/ax86-labs/lea/internal/storage/contracts"
+	aictx "github.com/PizenLabs/lea/internal/ai/context"
+	"github.com/PizenLabs/lea/internal/architecture"
+	graph "github.com/PizenLabs/lea/internal/graph/contracts"
+	"github.com/PizenLabs/lea/internal/storage/contracts"
 	"github.com/metoro-io/mcp-golang"
 	"github.com/metoro-io/mcp-golang/transport/stdio"
 )

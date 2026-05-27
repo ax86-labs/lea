@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	graph "github.com/ax86-labs/lea/internal/graph/contracts"
-	"github.com/ax86-labs/lea/internal/parser/golang"
-	"github.com/ax86-labs/lea/internal/parser/treesitter"
-	"github.com/ax86-labs/lea/internal/storage/sqlite"
-	"github.com/ax86-labs/lea/internal/workspace/ignore"
+	graph "github.com/PizenLabs/lea/internal/graph/contracts"
+	"github.com/PizenLabs/lea/internal/parser/golang"
+	"github.com/PizenLabs/lea/internal/parser/treesitter"
+	"github.com/PizenLabs/lea/internal/storage/sqlite"
+	"github.com/PizenLabs/lea/internal/workspace/ignore"
 	"github.com/spf13/cobra"
 )
 

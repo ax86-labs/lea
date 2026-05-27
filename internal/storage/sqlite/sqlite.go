@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	graph "github.com/ax86-labs/lea/internal/graph/contracts"
+	graph "github.com/PizenLabs/lea/internal/graph/contracts"
 	_ "modernc.org/sqlite"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ax86-labs/lea/internal/cli/commands"
+	"github.com/PizenLabs/lea/internal/cli/commands"
 )
 
 var Version = "dev"

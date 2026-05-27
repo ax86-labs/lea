@@ -2,7 +2,7 @@ package contracts
 
 import (
 	"context"
-	graph "github.com/ax86-labs/lea/internal/graph/contracts"
+	graph "github.com/PizenLabs/lea/internal/graph/contracts"
 )
 
 type Store interface {

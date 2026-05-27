@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/ax86-labs/lea/internal/architecture"
-	"github.com/ax86-labs/lea/internal/storage/sqlite"
+	"github.com/PizenLabs/lea/internal/architecture"
+	"github.com/PizenLabs/lea/internal/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 

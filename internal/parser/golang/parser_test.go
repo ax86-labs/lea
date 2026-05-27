@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	graph "github.com/ax86-labs/lea/internal/graph/contracts"
+	graph "github.com/PizenLabs/lea/internal/graph/contracts"
 )
 
 func TestParseFile(t *testing.T) {

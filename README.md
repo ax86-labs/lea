@@ -1,8 +1,8 @@
 # lea 
 
-[![Go Version](https://img.shields.io/github/go-mod/go-v/ax86-labs/lea)](https://golang.org/doc/devel/release.html)
+[![Go Version](https://img.shields.io/github/go-mod/go-v/PizenLabs/lea)](https://golang.org/doc/devel/release.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/ax86-labs/lea/ci.yml?branch=main)](https://github.com/ax86-labs/lea/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/PizenLabs/lea/ci.yml?branch=main)](https://github.com/PizenLabs/lea/actions)
 
 **Structural context operating system for AI-native software engineering.**
 
@@ -56,7 +56,7 @@ Modern AI coding systems suffer from context window limitations, token inflation
 
 ```bash
 # Clone the repository
-git clone https://github.com/ax86-labs/lea.git
+git clone https://github.com/PizenLabs/lea.git
 cd lea
 
 # Build the binary

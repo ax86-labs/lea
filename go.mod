@@ -1,4 +1,4 @@
-module github.com/ax86-labs/lea
+module github.com/PizenLabs/lea
 
 go 1.25.0
 
