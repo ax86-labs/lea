@@ -46,7 +46,9 @@ func (p *Parser) ParseFile(ctx context.Context, path string) ([]*graph.Node, []*
 	}
 
 	parser := sitter.NewParser()
-	parser.SetLanguage(lang)
+	if err := parser.SetLanguage(lang); err != nil {
+		return nil, nil, fmt.Errorf("failed to set language: %w", err)
+	}
 
 	tree := parser.Parse(content, nil)
 	if tree == nil {
@@ -71,12 +73,9 @@ func (p *Parser) ParseFile(ctx context.Context, path string) ([]*graph.Node, []*
 	}
 
 	fmt.Printf("Creating query for %s with lang %p and query:\n%s\n", ext, lang, queryStr)
-	query, err := sitter.NewQuery(lang, queryStr)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create query: %w", err)
-	}
-	if query == nil {
-		return nil, nil, fmt.Errorf("failed to create query: query is nil but error is nil")
+	query, qErr := sitter.NewQuery(lang, queryStr)
+	if qErr != nil {
+		return nil, nil, fmt.Errorf("failed to create query: %w", qErr)
 	}
 
 	cursor := sitter.NewQueryCursor()

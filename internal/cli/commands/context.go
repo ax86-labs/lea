@@ -22,7 +22,7 @@ var contextCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		compiler := aictx.NewCompiler(store)
 		ctx := context.Background()

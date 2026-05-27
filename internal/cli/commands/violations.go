@@ -27,7 +27,7 @@ var violationsCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		ctx := context.Background()
 		violations, err := architecture.FindViolations(ctx, store, cfg)

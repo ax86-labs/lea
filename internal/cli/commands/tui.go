@@ -17,7 +17,7 @@ var tuiCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		return tui.Start(store)
 	},

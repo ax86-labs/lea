@@ -18,7 +18,7 @@ var mcpCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }() 
 
 		s := mcp.NewServer(store)
 		return s.Start()

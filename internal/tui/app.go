@@ -7,17 +7,12 @@ import (
 	graph "github.com/PizenLabs/lea/internal/graph/contracts"
 	"github.com/PizenLabs/lea/internal/storage/contracts"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
 	docStyle   = lipgloss.NewStyle().Margin(1, 2)
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Background(lipgloss.Color("#7D56F4")).
-			Padding(0, 1)
 )
 
 type item struct {
@@ -31,11 +26,8 @@ func (i item) Description() string {
 func (i item) FilterValue() string { return i.node.Name }
 
 type model struct {
-	store    contracts.Store
-	list     list.Model
-	input    textinput.Model
-	selected *graph.Node
-	err      error
+	store contracts.Store
+	list  list.Model
 }
 
 func NewModel(store contracts.Store, nodes []*graph.Node) model {

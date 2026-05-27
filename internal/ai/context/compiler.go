@@ -29,9 +29,9 @@ func (c *Compiler) Compile(ctx context.Context, symbolID string) (string, error)
 	var sb strings.Builder
 
 	// Header
-	sb.WriteString(fmt.Sprintf("## %s\n\n", node.Name))
-	sb.WriteString(fmt.Sprintf("Type: %s\n", node.Type))
-	sb.WriteString(fmt.Sprintf("File: %s\n\n", node.File))
+	fmt.Fprintf(&sb, "## %s\n\n", node.Name)
+	fmt.Fprintf(&sb, "Type: %s\n", node.Type)
+	fmt.Fprintf(&sb, "File: %s\n\n", node.File)
 
 	// Outbound Dependencies (Uses/Calls)
 	outNodes, outEdges, err := c.store.GetNeighbors(ctx, symbolID)
@@ -40,7 +40,7 @@ func (c *Compiler) Compile(ctx context.Context, symbolID string) (string, error)
 		for i, n := range outNodes {
 			e := outEdges[i]
 			if e.Type == graph.EdgeCalls || e.Type == graph.EdgeUses || e.Type == graph.EdgeBelongsTo {
-				sb.WriteString(fmt.Sprintf("- [%s] %s (%s)\n", e.Type, n.Name, n.Type))
+				fmt.Fprintf(&sb, "- [%s] %s (%s)\n", e.Type, n.Name, n.Type)
 			}
 		}
 		sb.WriteString("\n")
@@ -52,7 +52,7 @@ func (c *Compiler) Compile(ctx context.Context, symbolID string) (string, error)
 		sb.WriteString("### Relationships\n")
 		for i, n := range inNodes {
 			e := inEdges[i]
-			sb.WriteString(fmt.Sprintf("- %s (%s) [%s]\n", n.Name, n.Type, e.Type))
+			fmt.Fprintf(&sb, "- %s (%s) [%s]\n", n.Name, n.Type, e.Type)
 		}
 		sb.WriteString("\n")
 	}

@@ -24,7 +24,7 @@ var traceCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		ctx := context.Background()
 		fmt.Printf("Trace of %s:\n", symbolID)

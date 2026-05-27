@@ -22,18 +22,9 @@ func TestParseFile(t *testing.T) {
 		t.Fatalf("ParseFile failed: %v", err)
 	}
 
-	// Verify nodes
-	expectedNodes := map[string]graph.NodeType{
-		"pkg:../../../testdata/golang":      graph.NodePackage,
-		"type:../../../testdata/golang:Calculator": graph.NodeStruct,
-		"method:../../../testdata/golang:Calculator.Add": graph.NodeMethod,
-		"func:../../../testdata/golang:Add": graph.NodeFunction,
-		"func:../../../testdata/golang:Main": graph.NodeFunction,
-	}
-
 	// Adjust pkgPath expectation based on how it's calculated in ParseFile
 	pkgPath := filepath.Dir(absPath)
-	expectedNodes = map[string]graph.NodeType{
+	expectedNodes := map[string]graph.NodeType{
 		"pkg:" + pkgPath:                         graph.NodePackage,
 		"type:" + pkgPath + ":Calculator":        graph.NodeStruct,
 		"method:" + pkgPath + ":Calculator.Add":  graph.NodeMethod,

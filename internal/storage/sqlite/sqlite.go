@@ -91,20 +91,20 @@ func (s *Store) ensureEdgesTable() error {
 		return err
 	}
 	if _, err := tx.Exec(`ALTER TABLE edges RENAME TO edges_old`); err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return err
 	}
 	if _, err := tx.Exec(s.edgesTableDDL()); err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return err
 	}
 	if _, err := tx.Exec(`INSERT INTO edges (from_id, to_id, type, sequence, metadata)
 		SELECT from_id, to_id, type, 0, metadata FROM edges_old`); err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return err
 	}
 	if _, err := tx.Exec(`DROP TABLE edges_old`); err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return err
 	}
 	return tx.Commit()
@@ -150,7 +150,7 @@ func (s *Store) edgesHasSequence() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }() 
 
 	for rows.Next() {
 		var cid int
@@ -215,7 +215,7 @@ func (s *Store) saveNodesEdgesTx(ctx context.Context, tx *sql.Tx, nodes []*graph
 		if err != nil {
 			return err
 		}
-		defer stmt.Close()
+		defer func() { _ = stmt.Close() }()
 
 		for _, node := range nodes {
 			metadata, err := marshalMetadata(node.Metadata)
@@ -233,7 +233,7 @@ func (s *Store) saveNodesEdgesTx(ctx context.Context, tx *sql.Tx, nodes []*graph
 		if err != nil {
 			return err
 		}
-		defer stmt.Close()
+		defer func() { _ = stmt.Close() }()
 
 		for _, edge := range edges {
 			metadata, err := marshalMetadata(edge.Metadata)
@@ -278,7 +278,7 @@ func (s *Store) ListNodes(ctx context.Context) ([]*graph.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }() 
 
 	var nodes []*graph.Node
 	for rows.Next() {
@@ -304,7 +304,7 @@ func (s *Store) ListEdges(ctx context.Context) ([]*graph.Edge, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }() 
 
 	var edges []*graph.Edge
 	for rows.Next() {
@@ -335,7 +335,7 @@ func (s *Store) GetNeighbors(ctx context.Context, id string) ([]*graph.Node, []*
 	if err != nil {
 		return nil, nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }() 
 
 	var nodes []*graph.Node
 	var edges []*graph.Edge
@@ -398,7 +398,7 @@ func (s *Store) GetInboundEdges(ctx context.Context, id string) ([]*graph.Node, 
 	if err != nil {
 		return nil, nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }() 
 
 	var nodes []*graph.Node
 	var edges []*graph.Edge

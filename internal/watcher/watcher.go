@@ -35,7 +35,7 @@ func (w *Watcher) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer watcher.Close()
+	defer func() { _ = watcher.Close() }() 
 
 	// Recursively add directories to watch
 	matcher := ignore.NewMatcher(w.root)

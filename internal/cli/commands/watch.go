@@ -30,7 +30,7 @@ var watchCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		w := watcher.NewWatcher(store, path)
 		return w.Start(context.Background())

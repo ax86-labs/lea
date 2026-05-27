@@ -14,7 +14,7 @@ func TestStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	// Test SaveNode
 	node := &graph.Node{

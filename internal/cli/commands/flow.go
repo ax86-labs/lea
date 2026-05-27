@@ -28,7 +28,7 @@ var flowCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		ctx := context.Background()
 		nodes, edges, err := store.GetNeighbors(ctx, symbolID)
