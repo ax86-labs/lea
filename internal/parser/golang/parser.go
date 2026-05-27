@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
+	graph "github.com/ax86-labs/lea/internal/graph/contracts"
 )
 
 type Parser struct {

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andev0x/ctxd/internal/parser/contracts"
-	"github.com/andev0x/ctxd/internal/parser/golang"
-	storage "github.com/andev0x/ctxd/internal/storage/contracts"
-	"github.com/andev0x/ctxd/internal/workspace/ignore"
+	"github.com/ax86-labs/lea/internal/parser/contracts"
+	"github.com/ax86-labs/lea/internal/parser/golang"
+	storage "github.com/ax86-labs/lea/internal/storage/contracts"
+	"github.com/ax86-labs/lea/internal/workspace/ignore"
 	"github.com/fsnotify/fsnotify"
 )
 

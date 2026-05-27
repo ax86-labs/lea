@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	aictx "github.com/andev0x/ctxd/internal/ai/context"
-	"github.com/andev0x/ctxd/internal/storage/sqlite"
+	aictx "github.com/ax86-labs/lea/internal/ai/context"
+	"github.com/ax86-labs/lea/internal/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ var contextCmd = &cobra.Command{
 
 		compiler := aictx.NewCompiler(store)
 		ctx := context.Background()
-		
+
 		output, err := compiler.Compile(ctx, symbolID)
 		if err != nil {
 			return err

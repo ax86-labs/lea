@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
-	"github.com/andev0x/ctxd/internal/parser/treesitter/python"
+	graph "github.com/ax86-labs/lea/internal/graph/contracts"
+	"github.com/ax86-labs/lea/internal/parser/treesitter/python"
 	sitter "github.com/tree-sitter/go-tree-sitter"
 	"github.com/tree-sitter/tree-sitter-python/bindings/go"
 	"github.com/tree-sitter/tree-sitter-rust/bindings/go"

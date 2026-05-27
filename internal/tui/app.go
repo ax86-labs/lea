@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/andev0x/ctxd/internal/storage/contracts"
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
+	graph "github.com/ax86-labs/lea/internal/graph/contracts"
+	"github.com/ax86-labs/lea/internal/storage/contracts"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,19 +13,21 @@ import (
 )
 
 var (
-	docStyle = lipgloss.NewStyle().Margin(1, 2)
+	docStyle   = lipgloss.NewStyle().Margin(1, 2)
 	titleStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FAFAFA")).
-		Background(lipgloss.Color("#7D56F4")).
-		Padding(0, 1)
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Background(lipgloss.Color("#7D56F4")).
+			Padding(0, 1)
 )
 
 type item struct {
 	node *graph.Node
 }
 
-func (i item) Title() string       { return i.node.Name }
-func (i item) Description() string { return fmt.Sprintf("%s | %s:%d", i.node.Type, i.node.File, i.node.Line) }
+func (i item) Title() string { return i.node.Name }
+func (i item) Description() string {
+	return fmt.Sprintf("%s | %s:%d", i.node.Type, i.node.File, i.node.Line)
+}
 func (i item) FilterValue() string { return i.node.Name }
 
 type model struct {

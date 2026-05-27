@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
+	graph "github.com/ax86-labs/lea/internal/graph/contracts"
 )
 
 func TestParseFile(t *testing.T) {
@@ -131,10 +131,10 @@ func TestExtractControlFlow(t *testing.T) {
 	// In Main, we expect calc.Add(5) then Add(1, 2) then fmt.Println(res)
 	// Note: calc.Add(5) might be tricky if not resolved.
 	// Current implementation: calc.Add is a SelectorExpr, becomes unknown:calc.Add
-	
+
 	pkgPath := filepath.Dir(absPath)
 	mainID := "func:" + pkgPath + ":Main"
-	
+
 	foundAdd := false
 	foundInternalAdd := false
 	for _, e := range edges {

@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/andev0x/ctxd/internal/storage/sqlite"
-	"github.com/andev0x/ctxd/internal/watcher"
+	"github.com/ax86-labs/lea/internal/storage/sqlite"
+	"github.com/ax86-labs/lea/internal/watcher"
 	"github.com/spf13/cobra"
 )
 

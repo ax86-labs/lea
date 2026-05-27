@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
-	"github.com/andev0x/ctxd/internal/storage/contracts"
-	"github.com/andev0x/ctxd/internal/storage/sqlite"
+	graph "github.com/ax86-labs/lea/internal/graph/contracts"
+	"github.com/ax86-labs/lea/internal/storage/contracts"
+	"github.com/ax86-labs/lea/internal/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 

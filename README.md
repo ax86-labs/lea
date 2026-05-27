@@ -35,7 +35,7 @@ Modern AI coding systems suffer from context window limitations, token inflation
 
 ```bash
 # Clone the repository
-git clone https://github.com/andev0x/ctxd.git
+git clone https://github.com/ax86-labs/lea.git
 cd ctxd
 
 # Build the binary

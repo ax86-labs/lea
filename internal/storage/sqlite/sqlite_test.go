@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
+	graph "github.com/ax86-labs/lea/internal/graph/contracts"
 )
 
 func TestStore(t *testing.T) {

@@ -2,7 +2,7 @@ package contracts
 
 import (
 	"context"
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
+	graph "github.com/ax86-labs/lea/internal/graph/contracts"
 )
 
 type Parser interface {

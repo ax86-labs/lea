@@ -1,4 +1,4 @@
-module github.com/andev0x/ctxd
+module github.com/ax86-labs/lea
 
 go 1.25.0
 

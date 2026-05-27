@@ -3,8 +3,8 @@ package commands
 import (
 	"path/filepath"
 
-	"github.com/andev0x/ctxd/internal/mcp"
-	"github.com/andev0x/ctxd/internal/storage/sqlite"
+	"github.com/ax86-labs/lea/internal/mcp"
+	"github.com/ax86-labs/lea/internal/storage/sqlite"
 	"github.com/spf13/cobra"
 )
 
