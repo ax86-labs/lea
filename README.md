@@ -3,6 +3,8 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-v/PizenLabs/lea)](https://golang.org/doc/devel/release.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/PizenLabs/lea/ci.yml?branch=main)](https://github.com/PizenLabs/lea/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/PizenLabs/lea)](https://goreportcard.com/report/github.com/PizenLabs/lea)
+
 
 **Structural context operating system for AI-native software engineering.**
 
@@ -45,10 +47,29 @@ Modern AI coding systems suffer from context window limitations, token inflation
 -   **Integration Layer**: Built-in MCP server for AI agents and a Bubble Tea-powered TUI for humans.
 
 ```text
-[Filesystem Event] -> [Incremental Parser] -> [SQLite Graph] -> [Retrieval Engine] -> [AI Context / TUI]
-```
 
----
+       ┌────────────────────────────────────────────────────────┐
+       │                 Local Filesystem Event                 │
+       └───────────────────────────┬────────────────────────────┘
+                                   │ (fsnotify)
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │ Incremental Parser Layer (Native Go AST / Tree-sitter) │
+       └───────────────────────────┬────────────────────────────┘
+                                   │ (Extracted Symbols)
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │   Storage Layer: SQLite Graph Engine (Recursive CTEs)  │
+       └───────────────────────────┬────────────────────────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    ▼                             ▼
+       ┌────────────────────────┐    ┌──────────────────────────┐
+       │   Integration Layer    │    │     Retrieval Engine     │
+       │   (Bubble Tea TUI)     │    │   (MCP Server for AIs)   │
+       └────────────────────────┘    └──────────────────────────┘
+
+```
 
 ##  Installation
 
