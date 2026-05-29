@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	aictx "github.com/PizenLabs/lea/internal/ai/context"
 	"github.com/PizenLabs/lea/internal/architecture"
 	graph "github.com/PizenLabs/lea/internal/graph/contracts"
 	"github.com/PizenLabs/lea/internal/storage/contracts"
-	"github.com/metoro-io/mcp-golang"
+
+	mcp_golang "github.com/metoro-io/mcp-golang"
 	"github.com/metoro-io/mcp-golang/transport/stdio"
 )
 
@@ -21,7 +23,42 @@ type Server struct {
 	compiler *aictx.Compiler
 }
 
-// NewServer constructs a Server with the provided store.
+// -----------------------------------------------------------------------------
+// Tool Arguments
+// -----------------------------------------------------------------------------
+
+// GetSymbolContextArgs defines the input for the get_symbol_context tool.
+type GetSymbolContextArgs struct {
+	SymbolID string `json:"symbol_id" jsonschema:"description=The unique symbol ID (e.g. func:path:name)"`
+}
+
+// FindNeighborsArgs defines the input for the find_neighbors tool.
+type FindNeighborsArgs struct {
+	SymbolID string `json:"symbol_id" jsonschema:"description=The unique symbol ID"`
+}
+
+// TraceCallsArgs defines the input for the trace_calls tool.
+type TraceCallsArgs struct {
+	SymbolID string `json:"symbol_id" jsonschema:"description=The root symbol ID"`
+	Depth    int    `json:"depth" jsonschema:"description=Maximum traversal depth,default=3"`
+}
+
+// TraceExecutionPathArgs defines the input for the trace_execution_path tool.
+type TraceExecutionPathArgs struct {
+	SymbolID string `json:"symbol_id" jsonschema:"description=The root symbol ID"`
+}
+
+// FindArchitectureViolationsArgs defines the input for the
+// find_architecture_violations tool.
+type FindArchitectureViolationsArgs struct {
+	ConfigPath string `json:"config_path" jsonschema:"description=Path to architecture YAML config"`
+}
+
+// -----------------------------------------------------------------------------
+// Constructor
+// -----------------------------------------------------------------------------
+
+// NewServer creates a new MCP server instance.
 func NewServer(store contracts.Store) *Server {
 	return &Server{
 		store:    store,
@@ -29,109 +66,198 @@ func NewServer(store contracts.Store) *Server {
 	}
 }
 
-// Start registers MCP tools and serves over stdio.
+// -----------------------------------------------------------------------------
+// Server Lifecycle
+// -----------------------------------------------------------------------------
+
+// Start registers all MCP tools and starts the stdio transport server.
 func (s *Server) Start() error {
-	mcpServer := mcp_golang.NewServer(stdio.NewStdioServerTransport(), mcp_golang.WithName("lea"))
+	server := mcp_golang.NewServer(
+		stdio.NewStdioServerTransport(),
+		mcp_golang.WithName("lea"),
+	)
 
-	// Tool: get_symbol_context
-	err := mcpServer.RegisterTool("get_symbol_context", "Generates AI-optimized markdown context for a given symbol ID", func(ctx context.Context, args struct {
-		SymbolID string `json:"symbol_id" jsonschema:"description=The unique ID of the symbol (e.g. func:path:name)"`
-	}) (*mcp_golang.ToolResponse, error) {
-		content, err := s.compiler.Compile(ctx, args.SymbolID)
-		if err != nil {
-			return nil, err
-		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(content)), nil
-	})
-	if err != nil {
+	// Register all tools.
+	if err := s.registerTools(server); err != nil {
 		return err
 	}
 
-	// Tool: find_neighbors
-	err = mcpServer.RegisterTool("find_neighbors", "Finds symbols directly related to a given symbol ID", func(ctx context.Context, args struct {
-		SymbolID string `json:"symbol_id" jsonschema:"description=The unique ID of the symbol"`
-	}) (*mcp_golang.ToolResponse, error) {
-		nodes, edges, err := s.store.GetNeighbors(ctx, args.SymbolID)
-		if err != nil {
-			return nil, err
-		}
-		if len(nodes) == 0 {
-			return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(fmt.Sprintf("No neighbors found for %s", args.SymbolID))), nil
-		}
-
-		res := fmt.Sprintf("Neighbors of %s:\n", args.SymbolID)
-		for i, n := range nodes {
-			e := edges[i]
-			res += fmt.Sprintf("- [%s] %s (%s) at %s:%d\n", e.Type, n.Name, n.Type, n.File, n.Line)
-		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(res)), nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Tool: trace_calls
-	err = mcpServer.RegisterTool("trace_calls", "Traces the call graph starting from a given symbol ID", func(ctx context.Context, args struct {
-		SymbolID string `json:"symbol_id" jsonschema:"description=The unique ID of the symbol"`
-		Depth    int    `json:"depth" jsonschema:"description=Maximum depth to trace,default=3"`
-	}) (*mcp_golang.ToolResponse, error) {
-		if args.Depth <= 0 {
-			args.Depth = 3
-		}
-		var res string
-		err := s.trace(ctx, args.SymbolID, 0, args.Depth, make(map[string]bool), &res)
-		if err != nil {
-			return nil, err
-		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(res)), nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Tool: trace_execution_path
-	err = mcpServer.RegisterTool("trace_execution_path", "Returns control-flow ordered calls for a symbol", func(ctx context.Context, args struct {
-		SymbolID string `json:"symbol_id" jsonschema:"description=The unique ID of the symbol"`
-	}) (*mcp_golang.ToolResponse, error) {
-		res, err := s.flow(ctx, args.SymbolID)
-		if err != nil {
-			return nil, err
-		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(res)), nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Tool: find_architecture_violations
-	err = mcpServer.RegisterTool("find_architecture_violations", "Finds architecture boundary violations using a config file", func(ctx context.Context, args struct {
-		ConfigPath string `json:"config_path" jsonschema:"description=Path to architecture YAML config"`
-	}) (*mcp_golang.ToolResponse, error) {
-		configPath := args.ConfigPath
-		if configPath == "" {
-			configPath = filepath.Join(".lea", "architecture.yaml")
-		}
-		cfg, err := architecture.LoadConfig(configPath)
-		if err != nil {
-			return nil, err
-		}
-		violations, err := architecture.FindViolations(ctx, s.store, cfg)
-		if err != nil {
-			return nil, err
-		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(formatViolations(violations))), nil
-	})
-	if err != nil {
-		return err
-	}
-
-	return mcpServer.Serve()
+	return server.Serve()
 }
 
-func (s *Server) trace(ctx context.Context, id string, depth, maxDepth int, visited map[string]bool, res *string) error {
-	if depth > maxDepth || visited[id] {
+// registerTools registers every MCP tool exposed by lea.
+func (s *Server) registerTools(server *mcp_golang.Server) error {
+	tools := []func(*mcp_golang.Server) error{
+		s.registerGetSymbolContextTool,
+		s.registerFindNeighborsTool,
+		s.registerTraceCallsTool,
+		s.registerTraceExecutionPathTool,
+		s.registerArchitectureViolationsTool,
+	}
+
+	for _, register := range tools {
+		if err := register(server); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+// Tool Registration
+// -----------------------------------------------------------------------------
+
+// registerGetSymbolContextTool registers the symbol context compiler tool.
+func (s *Server) registerGetSymbolContextTool(server *mcp_golang.Server) error {
+	return server.RegisterTool(
+		"get_symbol_context",
+		"Generates AI-optimized markdown context for a symbol",
+		func(
+			ctx context.Context,
+			args GetSymbolContextArgs,
+		) (*mcp_golang.ToolResponse, error) {
+
+			content, err := s.compiler.Compile(ctx, args.SymbolID)
+			if err != nil {
+				return nil, err
+			}
+
+			return textResponse(content), nil
+		},
+	)
+}
+
+// registerFindNeighborsTool registers the structural neighbor lookup tool.
+func (s *Server) registerFindNeighborsTool(server *mcp_golang.Server) error {
+	return server.RegisterTool(
+		"find_neighbors",
+		"Finds symbols directly connected to a symbol",
+		func(
+			ctx context.Context,
+			args FindNeighborsArgs,
+		) (*mcp_golang.ToolResponse, error) {
+
+			nodes, edges, err := s.store.GetNeighbors(ctx, args.SymbolID)
+			if err != nil {
+				return nil, err
+			}
+
+			return textResponse(renderNeighbors(args.SymbolID, nodes, edges)), nil
+		},
+	)
+}
+
+// registerTraceCallsTool registers the recursive call graph tracing tool.
+func (s *Server) registerTraceCallsTool(server *mcp_golang.Server) error {
+	return server.RegisterTool(
+		"trace_calls",
+		"Traces the call graph starting from a symbol",
+		func(
+			ctx context.Context,
+			args TraceCallsArgs,
+		) (*mcp_golang.ToolResponse, error) {
+
+			if args.Depth <= 0 {
+				args.Depth = 3
+			}
+
+			var builder strings.Builder
+
+			err := s.traceCalls(
+				ctx,
+				args.SymbolID,
+				0,
+				args.Depth,
+				make(map[string]bool),
+				&builder,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			return textResponse(builder.String()), nil
+		},
+	)
+}
+
+// registerTraceExecutionPathTool registers the ordered execution flow tool.
+func (s *Server) registerTraceExecutionPathTool(server *mcp_golang.Server) error {
+	return server.RegisterTool(
+		"trace_execution_path",
+		"Returns ordered control-flow traversal for a symbol",
+		func(
+			ctx context.Context,
+			args TraceExecutionPathArgs,
+		) (*mcp_golang.ToolResponse, error) {
+
+			content, err := s.renderExecutionFlow(ctx, args.SymbolID)
+			if err != nil {
+				return nil, err
+			}
+
+			return textResponse(content), nil
+		},
+	)
+}
+
+// registerArchitectureViolationsTool registers the architecture validation tool.
+func (s *Server) registerArchitectureViolationsTool(server *mcp_golang.Server) error {
+	return server.RegisterTool(
+		"find_architecture_violations",
+		"Detects architecture boundary violations",
+		func(
+			ctx context.Context,
+			args FindArchitectureViolationsArgs,
+		) (*mcp_golang.ToolResponse, error) {
+
+			configPath := args.ConfigPath
+			if configPath == "" {
+				configPath = filepath.Join(".lea", "architecture.yaml")
+			}
+
+			cfg, err := architecture.LoadConfig(configPath)
+			if err != nil {
+				return nil, err
+			}
+
+			violations, err := architecture.FindViolations(
+				ctx,
+				s.store,
+				cfg,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			return textResponse(renderViolations(violations)), nil
+		},
+	)
+}
+
+// -----------------------------------------------------------------------------
+// Trace Engine
+// -----------------------------------------------------------------------------
+
+// traceCalls recursively traverses CALLS relationships in the graph.
+func (s *Server) traceCalls(
+	ctx context.Context,
+	id string,
+	depth int,
+	maxDepth int,
+	visited map[string]bool,
+	builder *strings.Builder,
+) error {
+	// Stop traversal if maximum depth is reached.
+	if depth > maxDepth {
 		return nil
 	}
+
+	// Prevent infinite cycles in recursive graphs.
+	if visited[id] {
+		return nil
+	}
+
 	visited[id] = true
 
 	nodes, edges, err := s.store.GetNeighbors(ctx, id)
@@ -139,80 +265,227 @@ func (s *Server) trace(ctx context.Context, id string, depth, maxDepth int, visi
 		return err
 	}
 
-	for i, n := range nodes {
-		e := edges[i]
-		if e.Type == graph.EdgeCalls {
-			*res += fmt.Sprintf("%s-> [%s] %s (%s)\n", repeat("  ", depth), e.Type, n.Name, n.Type)
-			if err := s.trace(ctx, n.ID, depth+1, maxDepth, visited, res); err != nil {
-				return err
-			}
+	for i, node := range nodes {
+		// Defensive bounds check.
+		if i >= len(edges) {
+			continue
+		}
+
+		edge := edges[i]
+
+		// Only traverse CALLS relationships.
+		if edge.Type != graph.EdgeCalls {
+			continue
+		}
+
+		builder.WriteString(
+			fmt.Sprintf(
+				"%s-> [%s] %s (%s)\n",
+				strings.Repeat("  ", depth),
+				edge.Type,
+				node.Name,
+				node.Type,
+			),
+		)
+
+		if err := s.traceCalls(
+			ctx,
+			node.ID,
+			depth+1,
+			maxDepth,
+			visited,
+			builder,
+		); err != nil {
+			return err
 		}
 	}
+
 	return nil
 }
 
-func (s *Server) flow(ctx context.Context, id string) (string, error) {
+// -----------------------------------------------------------------------------
+// Flow Rendering
+// -----------------------------------------------------------------------------
+
+// renderExecutionFlow renders ordered control-flow edges for a symbol.
+func (s *Server) renderExecutionFlow(
+	ctx context.Context,
+	id string,
+) (string, error) {
 	nodes, edges, err := s.store.GetNeighbors(ctx, id)
 	if err != nil {
 		return "", err
 	}
 
-	type entry struct {
+	type flowEntry struct {
 		edge *graph.Edge
 		node *graph.Node
 	}
 
-	var entries []entry
-	for i, n := range nodes {
-		e := edges[i]
-		if e.Type == graph.EdgeFlowsThrough {
-			entries = append(entries, entry{edge: e, node: n})
+	var entries []flowEntry
+
+	for i, node := range nodes {
+		if i >= len(edges) {
+			continue
+		}
+
+		edge := edges[i]
+
+		if edge.Type == graph.EdgeFlowsThrough {
+			entries = append(entries, flowEntry{
+				edge: edge,
+				node: node,
+			})
 		}
 	}
+
 	if len(entries) == 0 {
-		return fmt.Sprintf("No control flow entries found for %s", id), nil
+		return fmt.Sprintf(
+			"No control-flow entries found for %s",
+			id,
+		), nil
 	}
 
+	// Sort by execution order.
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].edge.Sequence < entries[j].edge.Sequence
 	})
 
-	res := fmt.Sprintf("Control flow for %s:\n", id)
+	var builder strings.Builder
+
+	builder.WriteString(
+		fmt.Sprintf("Execution flow for %s:\n", id),
+	)
+
 	for _, entry := range entries {
 		contextLabel := ""
+
 		if entry.edge.Metadata != nil {
-			if ctx, ok := entry.edge.Metadata["context"].(string); ok && ctx != "" {
-				contextLabel = fmt.Sprintf(" [%s]", ctx)
+			if ctxValue, ok := entry.edge.Metadata["context"].(string); ok {
+				if ctxValue != "" {
+					contextLabel = fmt.Sprintf(" [%s]", ctxValue)
+				}
 			}
 		}
-		res += fmt.Sprintf("%d. %s (%s)%s\n", entry.edge.Sequence, entry.node.Name, entry.node.Type, contextLabel)
+
+		builder.WriteString(
+			fmt.Sprintf(
+				"%d. %s (%s)%s\n",
+				entry.edge.Sequence,
+				entry.node.Name,
+				entry.node.Type,
+				contextLabel,
+			),
+		)
 	}
-	return res, nil
+
+	return builder.String(), nil
 }
 
-func formatViolations(violations []architecture.Violation) string {
+// -----------------------------------------------------------------------------
+// Render Helpers
+// -----------------------------------------------------------------------------
+
+// renderNeighbors renders direct graph neighbors.
+func renderNeighbors(
+	symbolID string,
+	nodes []*graph.Node,
+	edges []*graph.Edge,
+) string {
+	if len(nodes) == 0 {
+		return fmt.Sprintf(
+			"No neighbors found for %s",
+			symbolID,
+		)
+	}
+
+	var builder strings.Builder
+
+	builder.WriteString(
+		fmt.Sprintf("Neighbors of %s:\n", symbolID),
+	)
+
+	for i, node := range nodes {
+		if i >= len(edges) {
+			continue
+		}
+
+		edge := edges[i]
+
+		builder.WriteString(
+			fmt.Sprintf(
+				"- [%s] %s (%s) at %s:%d\n",
+				edge.Type,
+				node.Name,
+				node.Type,
+				node.File,
+				node.Line,
+			),
+		)
+	}
+
+	return builder.String()
+}
+
+// renderViolations renders architecture rule violations.
+func renderViolations(
+	violations []architecture.Violation,
+) string {
 	if len(violations) == 0 {
 		return "No architecture violations found."
 	}
 
+	// Keep output deterministic.
 	sort.Slice(violations, func(i, j int) bool {
 		if violations[i].FromLayer == violations[j].FromLayer {
 			return violations[i].ToLayer < violations[j].ToLayer
 		}
+
 		return violations[i].FromLayer < violations[j].FromLayer
 	})
 
-	res := fmt.Sprintf("Architecture violations (%d):\n", len(violations))
-	for _, v := range violations {
-		res += fmt.Sprintf("- [%s] %s (%s) -> %s (%s)\n  at %s:%d -> %s:%d\n", v.EdgeType, v.FromID, v.FromLayer, v.ToID, v.ToLayer, v.FromFile, v.FromLine, v.ToFile, v.ToLine)
+	var builder strings.Builder
+
+	builder.WriteString(
+		fmt.Sprintf(
+			"Architecture violations (%d):\n",
+			len(violations),
+		),
+	)
+
+	for _, violation := range violations {
+		builder.WriteString(
+			fmt.Sprintf(
+				"- [%s] %s (%s) -> %s (%s)\n",
+				violation.EdgeType,
+				violation.FromID,
+				violation.FromLayer,
+				violation.ToID,
+				violation.ToLayer,
+			),
+		)
+
+		builder.WriteString(
+			fmt.Sprintf(
+				"  at %s:%d -> %s:%d\n",
+				violation.FromFile,
+				violation.FromLine,
+				violation.ToFile,
+				violation.ToLine,
+			),
+		)
 	}
-	return res
+
+	return builder.String()
 }
 
-func repeat(s string, n int) string {
-	res := ""
-	for i := 0; i < n; i++ {
-		res += s
-	}
-	return res
+// -----------------------------------------------------------------------------
+// Response Helpers
+// -----------------------------------------------------------------------------
+
+// textResponse creates a standard MCP text response.
+func textResponse(content string) *mcp_golang.ToolResponse {
+	return mcp_golang.NewToolResponse(
+		mcp_golang.NewTextContent(content),
+	)
 }
