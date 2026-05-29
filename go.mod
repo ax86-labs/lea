@@ -1,6 +1,6 @@
 module github.com/PizenLabs/lea
 
-go 1.25.0
+go 1.24.2
 
 require (
 	github.com/charmbracelet/bubbles v1.0.0
@@ -14,7 +14,13 @@ require (
 	github.com/tree-sitter/tree-sitter-rust v0.21.3-0.20240818005432-2b43eafe6447
 	github.com/tree-sitter/tree-sitter-typescript v0.23.2
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.50.1
+	modernc.org/sqlite v1.34.0
+)
+
+require (
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
+	golang.org/x/exp v0.0.0-20231108232855-2478ac86f678 // indirect
+	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
 )
 
 require (
@@ -56,9 +62,13 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/text v0.3.8 // indirect
-	modernc.org/libc v1.72.3 // indirect
-	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.11.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/tools v0.28.0 // indirect
+	modernc.org/libc v1.61.0 // indirect
+	modernc.org/mathutil v1.6.0 // indirect
+	modernc.org/memory v1.8.0 // indirect
+	modernc.org/strutil v1.2.0 // indirect
+	modernc.org/token v1.1.0 // indirect
 )
