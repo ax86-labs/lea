@@ -111,6 +111,27 @@ lea tui
 
 ---
 
+## Usage Guide
+
+For a deeper walkthrough (installation, workflows, and diagrams), see [GUIDE.md](GUIDE.md).
+
+## Usage Patterns
+
+### AI-Agent Workflow (MCP)
+
+1. **Find the target symbol** to get exact file and symbol coordinates.
+2. **Expand context** to pull immediate neighbors (`CALLS`, `USES`, `IMPLEMENTS`).
+3. **Trace execution** to map the ordered call graph for the change.
+4. **Check boundaries** against architecture rules before committing updates.
+
+### Developer Workflow (CLI/TUI)
+
+- Use `lea tui` for fuzzy symbol search and graph browsing.
+- Use `lea context` to generate prompt-ready context for web LLMs.
+- Use `lea flow` and `lea trace` to understand execution order and impact.
+
+---
+
 ##  Command Guide
 
 | Command | Description | Example |
@@ -125,6 +146,64 @@ lea tui
 | `impact` | Analyze the impact of changing a symbol | `lea impact TokenService` |
 | `violations` | Check for architectural boundary violations | `lea violations --config arch.yaml` |
 | `watch` | Watch for file changes and update the graph | `lea watch .` |
+
+---
+
+## Additional Diagrams
+
+### MCP Query Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Agent as AI Agent
+    participant Lea as lea (MCP Server)
+    participant DB as SQLite (Graph Engine)
+
+    Agent->>Lea: find_symbol(name)
+    Lea->>DB: Query exact Symbol URI/File
+    DB-->>Lea: Return Node
+    Lea-->>Agent: Return Symbol Coordinates
+
+    Agent->>Lea: get_neighbors(URI)
+    Lea->>DB: Traverse Edges (CALLS, USES, etc.)
+    DB-->>Lea: Return Subgraph
+    Lea-->>Agent: Return Markdown Context
+```
+
+### Incremental Indexing Loop
+
+```text
+[Filesystem Event: Modify/Create/Delete]
+                   │
+                   ▼
+       ┌───────────────────────┐
+       │   Debounce & Batch    │ (Gathers changes over 100-300ms)
+       └───────────┬───────────┘
+                   │
+                   ▼
+       ┌───────────────────────┐
+       │   Invalidation Stage  │ (Deletes affected Nodes & Edges in SQLite)
+       └───────────┬───────────┘
+                   │
+                   ▼
+       ┌───────────────────────┐
+       │  Incremental Parsing  │ (Native go/ast or Tree-sitter AST extraction)
+       └───────────┬───────────┘
+                   │
+                   ▼
+       ┌───────────────────────┐
+       │     Graph Commit      │ (Atomic SQL Transaction: Inserts new entities)
+       └───────────────────────┘
+```
+
+---
+
+## Troubleshooting
+
+- If the graph is empty, re-run `lea index .` and confirm your repository path is correct.
+- For architecture checks, ensure your rules file (for example `arch.yaml`) is present and valid.
+- If symbols are missing, confirm the target language parser is supported and available.
 
 ---
 
