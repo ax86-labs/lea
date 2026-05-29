@@ -12,6 +12,7 @@ import (
 var Version = "dev"
 
 func main() {
+	commands.Version = Version
 	if err := commands.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
