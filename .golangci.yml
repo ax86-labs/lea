@@ -5,9 +5,16 @@ run:
 
 linters:
   enable:
+    - bodyclose
+    - contextcheck
     - errcheck
+    - errorlint
+    - gosimple
     - govet
     - ineffassign
+    - nilerr
+    - noctx
+    - revive
     - staticcheck
     - unused
 
