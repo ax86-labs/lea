@@ -278,14 +278,13 @@ func (s *Server) traceCalls(
 			continue
 		}
 
-		builder.WriteString(
-			fmt.Sprintf(
-				"%s-> [%s] %s (%s)\n",
-				strings.Repeat("  ", depth),
-				edge.Type,
-				node.Name,
-				node.Type,
-			),
+		fmt.Fprintf(
+			builder,
+			"%s-> [%s] %s (%s)\n",
+			strings.Repeat("  ", depth),
+			edge.Type,
+			node.Name,
+			node.Type,
 		)
 
 		if err := s.traceCalls(
@@ -353,9 +352,7 @@ func (s *Server) renderExecutionFlow(
 
 	var builder strings.Builder
 
-	builder.WriteString(
-		fmt.Sprintf("Execution flow for %s:\n", id),
-	)
+	fmt.Fprintf(&builder, "Execution flow for %s:\n", id)
 
 	for _, entry := range entries {
 		contextLabel := ""
@@ -368,14 +365,13 @@ func (s *Server) renderExecutionFlow(
 			}
 		}
 
-		builder.WriteString(
-			fmt.Sprintf(
-				"%d. %s (%s)%s\n",
-				entry.edge.Sequence,
-				entry.node.Name,
-				entry.node.Type,
-				contextLabel,
-			),
+		fmt.Fprintf(
+			&builder,
+			"%d. %s (%s)%s\n",
+			entry.edge.Sequence,
+			entry.node.Name,
+			entry.node.Type,
+			contextLabel,
 		)
 	}
 
@@ -401,9 +397,7 @@ func renderNeighbors(
 
 	var builder strings.Builder
 
-	builder.WriteString(
-		fmt.Sprintf("Neighbors of %s:\n", symbolID),
-	)
+	fmt.Fprintf(&builder, "Neighbors of %s:\n", symbolID)
 
 	for i, node := range nodes {
 		if i >= len(edges) {
@@ -412,15 +406,14 @@ func renderNeighbors(
 
 		edge := edges[i]
 
-		builder.WriteString(
-			fmt.Sprintf(
-				"- [%s] %s (%s) at %s:%d\n",
-				edge.Type,
-				node.Name,
-				node.Type,
-				node.File,
-				node.Line,
-			),
+		fmt.Fprintf(
+			&builder,
+			"- [%s] %s (%s) at %s:%d\n",
+			edge.Type,
+			node.Name,
+			node.Type,
+			node.File,
+			node.Line,
 		)
 	}
 
@@ -446,33 +439,26 @@ func renderViolations(
 
 	var builder strings.Builder
 
-	builder.WriteString(
-		fmt.Sprintf(
-			"Architecture violations (%d):\n",
-			len(violations),
-		),
-	)
+	fmt.Fprintf(&builder, "Architecture violations (%d):\n", len(violations))
 
 	for _, violation := range violations {
-		builder.WriteString(
-			fmt.Sprintf(
-				"- [%s] %s (%s) -> %s (%s)\n",
-				violation.EdgeType,
-				violation.FromID,
-				violation.FromLayer,
-				violation.ToID,
-				violation.ToLayer,
-			),
+		fmt.Fprintf(
+			&builder,
+			"- [%s] %s (%s) -> %s (%s)\n",
+			violation.EdgeType,
+			violation.FromID,
+			violation.FromLayer,
+			violation.ToID,
+			violation.ToLayer,
 		)
 
-		builder.WriteString(
-			fmt.Sprintf(
-				"  at %s:%d -> %s:%d\n",
-				violation.FromFile,
-				violation.FromLine,
-				violation.ToFile,
-				violation.ToLine,
-			),
+		fmt.Fprintf(
+			&builder,
+			"  at %s:%d -> %s:%d\n",
+			violation.FromFile,
+			violation.FromLine,
+			violation.ToFile,
+			violation.ToLine,
 		)
 	}
 
